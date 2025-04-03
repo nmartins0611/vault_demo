@@ -1,0 +1,85 @@
+---
+- name: Register RHEL servers with subscription manager
+  hosts: rhel_servers
+  gather_facts: true
+  
+  vars:
+    # These variables can be set in AAP as Extra Variables or Survey
+    vault_addr: "http://vault.nostromo.co.za:8200"
+    vault_kv_path: "kv/rhsm"
+    auto_attach: true
+   # rhsm_pool_id: "{{ pool_id | default('') }}"  # Can be provided via survey
+    
+    # Repository configuration by RHEL version
+    rhel8_repos:
+      - rhel-8-for-x86_64-baseos-rpms
+      - rhel-8-for-x86_64-appstream-rpms
+    
+    rhel9_repos:
+      - rhel-9-for-x86_64-baseos-rpms
+      - rhel-9-for-x86_64-appstream-rpms
+
+  tasks:
+    # Use the community.hashi_vault collection to retrieve secrets
+    - name: Retrieve RHSM credentials from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_addr }}"
+        path: "{{ vault_kv_path }}"
+        auth_method: "{{ vault_auth_method | default('token', true) }}"
+        token: "{{ vault_token | default(omit) }}"
+        role_id: "{{ vault_role_id | default(omit) }}"
+        secret_id: "{{ vault_secret_id | default(omit) }}"
+      register: vault_secrets
+      delegate_to: localhost
+      become: false
+      no_log: true
+      # This will use AAP-provided credentials if available
+      
+    - name: Set RHSM credentials from Vault response
+      set_fact:
+        rhsm_username: "{{ vault_secrets.data.data.rhsm_username }}"
+        rhsm_password: "{{ vault_secrets.data.data.rhsm_password }}"
+      no_log: true
+      
+    - name: Check current subscription status
+      command: subscription-manager status
+      register: subscription_status
+      failed_when: false
+      changed_when: false
+      
+    - name: Unregister if already registered
+      command: subscription-manager unregister
+      when: subscription_status.rc == 0
+      
+    - name: Clean subscription manager
+      command: subscription-manager clean
+      when: subscription_status.rc == 0
+      
+    - name: Register with Red Hat Subscription Manager
+      redhat_subscription:
+        state: present
+        username: "{{ rhsm_username }}"
+        password: "{{ rhsm_password }}"
+        auto_attach: "{{ auto_attach }}"
+        pool_ids: "{{ [rhsm_pool_id] if rhsm_pool_id | length > 0 else omit }}"
+      register: rhsm_register_result
+      no_log: true
+      
+    - name: Show registration result
+      debug:
+        msg: "RHSM registration completed successfully for {{ inventory_hostname }}"
+      when: rhsm_register_result is succeeded
+      
+    - name: Enable required repositories for RHEL 8
+      rhsm_repository:
+        name: "{{ item }}"
+        state: enabled
+      loop: "{{ rhel8_repos }}"
+      when: ansible_distribution_major_version == "8"
+      
+    - name: Enable required repositories for RHEL 9
+      rhsm_repository:
+        name: "{{ item }}"
+        state: enabled
+      loop: "{{ rhel9_repos }}"
+      when: ansible_distribution_major_version == "9"
