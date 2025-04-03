@@ -1,6 +1,6 @@
 ---
 - name: Register RHEL servers with subscription manager
-  hosts: rhel_servers
+  hosts: rhel
   gather_facts: true
   
   vars:
