@@ -32,7 +32,7 @@
       register: vault_secrets
       delegate_to: localhost
       become: false
-      no_log: true
+     # no_log: true
       # This will use AAP-provided credentials if available
       
     - name: Set RHSM credentials from Vault response
