@@ -22,7 +22,7 @@
   tasks:
     # Use the community.hashi_vault collection to retrieve secrets
     - name: Retrieve RHSM credentials from Vault
-      community.hashi_vault.vault_kv2_lookup:
+      community.hashi_vault.vault_kv2_get:
         url: "{{ vault_addr }}"
         path: "{{ vault_kv_path }}"
         auth_method: "{{ vault_auth_method | default('token', true) }}"
