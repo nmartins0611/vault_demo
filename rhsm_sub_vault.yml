@@ -10,7 +10,7 @@
     # These variables can be set in AAP as Extra Variables or Survey
     vault_addr:
     vault_kv_path: "kv/rhsm"
-    vault_token:
+    vault_token: "{{ lookup('env','VAULT_ANSIBLE') }}"
     auto_attach: true
    # rhsm_pool_id: "{{ pool_id | default('') }}"  # Can be provided via survey
     
@@ -37,8 +37,8 @@
         path: "{{ vault_kv_path }}"
         auth_method: "{{ vault_auth_method | default('token', true) }}"
         token: "{{ vault_token | default(omit) }}"
-        role_id: "{{ vault_role_id | default(omit) }}"
-        secret_id: "{{ vault_secret_id | default(omit) }}"
+      #  role_id: "{{ vault_role_id | default(omit) }}"
+      #  secret_id: "{{ vault_secret_id | default(omit) }}"
       register: vault_secrets
       delegate_to: localhost
       become: false
