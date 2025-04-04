@@ -24,6 +24,12 @@
       - rhel-9-for-x86_64-appstream-rpms
 
   tasks:
+    - name: Show the secret
+      debug: "{{ token }}"
+
+    - name: Show the Hashi Address
+      debug: "{{ vault_addr }}"
+  
     # Use the community.hashi_vault collection to retrieve secrets
     - name: Retrieve RHSM credentials from Vault
       community.hashi_vault.vault_kv2_get:
