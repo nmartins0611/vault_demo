@@ -4,7 +4,7 @@
   gather_facts: true
 
   vars_files:
-    vault_details
+    - vault_details
   
   vars:
     # These variables can be set in AAP as Extra Variables or Survey
