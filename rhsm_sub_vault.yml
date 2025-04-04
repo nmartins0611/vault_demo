@@ -2,6 +2,9 @@
 - name: Register RHEL servers with subscription manager
   hosts: rhel
   gather_facts: true
+
+  vars_files:
+    vault_details
   
   vars:
     # These variables can be set in AAP as Extra Variables or Survey
