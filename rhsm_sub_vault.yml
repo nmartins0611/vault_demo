@@ -10,7 +10,7 @@
     # These variables can be set in AAP as Extra Variables or Survey
     vault_addr:
     vault_kv_path: "kv/rhsm"
-    token:
+    vault_token:
     auto_attach: true
    # rhsm_pool_id: "{{ pool_id | default('') }}"  # Can be provided via survey
     
